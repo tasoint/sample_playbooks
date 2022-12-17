@@ -7,7 +7,7 @@
       ansible.builtin.uri:
         url: "{{ ANSIBLE_HASHI_VAULT_ADDR }}/v1/aws/creds/my-role"
         method: GET
-        body_format: application/json
+        body_format: json
         headers:
           X-Vault-Token: "{{ ANSIBLE_HASHI_VAULT_TOKEN }}"
       register: res_newCredential
