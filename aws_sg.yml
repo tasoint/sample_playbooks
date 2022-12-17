@@ -3,6 +3,10 @@
   gather_facts: false
 
   tasks:
+    - name: pause 1 minutes
+      ansible.builtin.pause:
+        minutes: 3
+
     - name: example using security group rule descriptions
       amazon.aws.ec2_security_group:
         name: test_vault_sg
