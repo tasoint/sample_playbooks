@@ -24,8 +24,8 @@
         inputs:
           username: "{{ res_newCredential['json']['data']['access_key'] }}"
           password: "{{ res_newCredential['json']['data']['secret_key'] }}"
-        controller_username: "{{ user }}"
-        controller_password: "{{ password }}"
-        controller_host: "{{ url }}"
-        validate_certs: false
+        # controller_username: "{{ user }}"
+        # controller_password: "{{ password }}"
+        # controller_host: "{{ url }}"
+        # validate_certs: false
 
