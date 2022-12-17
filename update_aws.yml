@@ -19,6 +19,7 @@
     - name: update AWS credential
       awx.awx.credential:
         name: AWS
+        organization: Default
         credential_type: Amazon Web Services
         inputs:
           access_key: "{{ res_newCredential['json']['data']['access_key'] }}"
