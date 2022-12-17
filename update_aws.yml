@@ -21,8 +21,8 @@
         name: AWS
         credential_type: Amazon Web Services
         inputs:
-          access_key: "{{ res_newCredential['data']['access_key'] }}"
-          secret_key: "{{ res_newCredential['data']['secret_key'] }}"
+          access_key: "{{ res_newCredential['json']['data']['access_key'] }}"
+          secret_key: "{{ res_newCredential['json']['data']['secret_key'] }}"
         controller_username: "{{ user }}"
         controller_password: "{{ password }}"
         controller_host: "{{ url }}"
