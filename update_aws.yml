@@ -7,14 +7,14 @@
       ansible.builtin.uri:
         url: "{{ ANSIBLE_HASHI_VAULT_ADDR }}/v1/aws/creds/my-role"
         method: GET
-        body_format: json
+        body_format: application/json
         headers:
           X-Vault-Token: "{{ ANSIBLE_HASHI_VAULT_TOKEN }}"
       register: res_newCredential
 
-    - name: debug
-      ansible.builtin.debug:
-        msg: "{{ res_newCredential }}"
+    # - name: debug
+      # ansible.builtin.debug:
+        # msg: "{{ res_newCredential }}"
 
     - name: update AWS credential
       awx.awx.credential:
@@ -24,8 +24,8 @@
         inputs:
           username: "{{ res_newCredential['json']['data']['access_key'] }}"
           password: "{{ res_newCredential['json']['data']['secret_key'] }}"
-        # controller_username: "{{ user }}"
-        # controller_password: "{{ password }}"
-        # controller_host: "{{ url }}"
-        # validate_certs: false
+        controller_username: "{{ user }}"
+        controller_password: "{{ password }}"
+        controller_host: "{{ url }}"
+        validate_certs: false
 
