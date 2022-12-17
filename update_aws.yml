@@ -14,7 +14,7 @@
 
     - name: debug
       ansible.builtin.debug:
-        msg:{{ res_newCredential }}
+        msg: "{{ res_newCredential }}"
 
     - name: update AWS credential
       awx.awx.credential:
