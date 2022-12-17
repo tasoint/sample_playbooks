@@ -1,1 +1,3 @@
-awx.awx
+---
+collections:
+- awx.awx
