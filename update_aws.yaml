@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: make credential
+      ansible.builtin.uri:
+        url: "{{ ANSIBLE_HASHI_VAULT_ADDR }}/v1/aws/creds/my-role"
+        method: GET
+        body_format: json
+        headers:
+          X-Vault-Token: "{{ ANSIBLE_HASHI_VAULT_TOKEN }}"
+      register: res_newCredential
+
+    - name: update AWS credential
+      awx.awx.credential:
+        name: AWS
+        credential_type: Amazon Web Services
+        inputs:
+          access_key: "{{ res_newCredential['data']['access_key'] }}"
+          secret_key: "{{ res_newCredential['data']['secret_key'] }}"
+        controller_username: "{{ user }}"
+        controller_password: "{{ password }}"
+        controller_host: "{{ url }}"
+
