@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: example using security group rule descriptions
+      amazon.aws.ec2_security_group:
+        name: test_vault_sg
+        description: sg with rule descriptions
+        vpc_id: "{{ vpc_id }}"
+        region: ap-northeast-1
+        rules:
+          - proto: tcp
+            ports:
+            - 80
+            cidr_ip: 0.0.0.0/0
+            rule_desc: allow all on port 80
