@@ -12,6 +12,10 @@
           X-Vault-Token: "{{ ANSIBLE_HASHI_VAULT_TOKEN }}"
       register: res_newCredential
 
+    - name: debug
+      ansible.builtin.debug:
+        msg:{{ res_newCredential }}
+
     - name: update AWS credential
       awx.awx.credential:
         name: AWS
