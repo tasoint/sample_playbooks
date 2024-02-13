@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Execute a non-existent command
+      command: non_existent_command

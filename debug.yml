@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    sample_variable: "Hello World"
+
+  tasks:
+    - name: Display the value of the variable
+      debug:
+        msg: "{{ sample_variable }}"
