@@ -1,0 +1,4 @@
+---
+ansible_network_os: junos
+ansible_connection: netconf
+ansible_python_interpreter: "{{ ansible_playbook_python }}"
