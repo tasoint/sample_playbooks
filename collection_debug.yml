@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: debug collection
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection list
+      register: res_cmd
+
+    - name: debug res
+      ansible.builtin.debug:
+        var: res_cmd
