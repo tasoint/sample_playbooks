@@ -1,0 +1,23 @@
+# Cisco Log Collection Summary
+# Collection Time: {{ ansible_date_time.iso8601 }}
+
+Device: {{ inventory_hostname }}
+IP Address: {{ ansible_host }}
+
+Files Created:
+- {{ inventory_hostname }}_basic_{{ timestamp }}.txt
+- {{ inventory_hostname }}_routing_{{ timestamp }}.txt
+- {{ inventory_hostname }}_logs_{{ timestamp }}.txt
+
+Total Commands Executed: {{ (basic_info.stdout | length) + (routing_info.stdout | default([]) | length) + (log_info.stdout | length) }}
+
+Collection Details:
+{% for cmd in basic_info.stdout_lines %}
+- Basic: {{ cmd[0].split()[0:2] | join(' ') }}
+{% endfor %}
+{% for cmd in routing_info.stdout_lines | default([]) %}
+- Routing: {{ cmd[0].split()[0:2] | join(' ') }}
+{% endfor %}
+{% for cmd in log_info.stdout_lines %}
+- Logging: {{ cmd[0].split()[0:2] | join(' ') }}
+{% endfor %}

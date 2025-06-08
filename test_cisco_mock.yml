@@ -1,0 +1,134 @@
+---
+- hosts: localhost
+  gather_facts: true
+  vars:
+    log_dir: "./logs"
+    timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    
+  tasks:
+    - name: Create log directory
+      file:
+        path: "{{ log_dir }}"
+        state: directory
+
+    - name: Mock Cisco command outputs for testing
+      set_fact:
+        basic_info:
+          stdout:
+            - |
+              Cisco IOS Software, C2900 Software (C2900-UNIVERSALK9-M), Version 15.1(4)M4
+              Technical Support: http://www.cisco.com/techsupport
+              Copyright (c) 1986-2012 by Cisco Systems, Inc.
+              Compiled Fri 20-Jul-12 05:46 by prod_rel_team
+            - |
+              !
+              ! Last configuration change at 09:56:32 UTC Mon Mar 1 1993
+              !
+              version 15.1
+              service timestamps debug datetime msec
+              service timestamps log datetime msec
+              no service password-encryption
+              !
+              hostname Router
+            - |
+              Using 98304 out of 262144 bytes
+              !
+              ! Last configuration change at 09:56:32 UTC Mon Mar 1 1993
+              !
+              version 15.1
+              service timestamps debug datetime msec
+            - |
+              Interface                  IP-Address      OK? Method Status                Protocol
+              GigabitEthernet0/0         192.168.1.1     YES manual up                    up      
+              GigabitEthernet0/1         unassigned      YES unset  administratively down down    
+              Serial0/0/0                10.1.1.1        YES manual up                    up      
+            - |
+              Port      Name               Status       Vlan       Duplex  Speed Type
+              Gi0/0                        connected    1          a-full  a-100 10/100BaseTX
+              Gi0/1                        notconnect   1            auto   auto 10/100BaseTX
+          stdout_lines:
+            - ["show version"]
+            - ["show running-config"]
+            - ["show startup-config"]
+            - ["show ip interface brief"]
+            - ["show interface status"]
+
+        routing_info:
+          stdout:
+            - |
+              Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+                     D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area 
+              Gateway of last resort is not set
+              
+                    10.0.0.0/8 is variably subnetted, 2 subnets, 2 masks
+              C        10.1.1.0/30 is directly connected, Serial0/0/0
+              L        10.1.1.1/32 is directly connected, Serial0/0/0
+            - |
+              Protocol  Address          Age (min)  Hardware Addr   Type   Interface
+              Internet  10.1.1.2               98   c201.0400.0000  ARPA   Serial0/0/0
+              Internet  192.168.1.2             -   c202.0400.0000  ARPA   GigabitEthernet0/0
+          stdout_lines:
+            - ["show ip route"]
+            - ["show ip arp"]
+
+        log_info:
+          stdout:
+            - |
+              Syslog logging: enabled (0 messages dropped, 3 messages rate-limited, 0 flushes, 0 overruns, xml disabled, filtering disabled)
+              Console logging: level debugging, 271 messages logged, xml disabled, filtering disabled
+              Monitor logging: level debugging, 0 messages logged, xml disabled, filtering disabled
+            - |
+              *Mar  1 09:56:32.123: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to up
+              *Mar  1 09:56:31.456: %LINK-3-UPDOWN: Interface GigabitEthernet0/0, changed state to up
+            - |
+              *09:56:32.123 UTC Mon Mar 1 1993
+          stdout_lines:
+            - ["show logging"]
+            - ["show logging history"]
+            - ["show clock"]
+
+    - name: Set mock inventory hostname
+      set_fact:
+        inventory_hostname: "test-cisco-router"
+        ansible_host: "192.168.1.100"
+
+    - name: Save basic system information to file
+      template:
+        src: cisco_basic_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_basic_{{ timestamp }}.txt"
+
+    - name: Save routing information to file
+      template:
+        src: cisco_routing_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_routing_{{ timestamp }}.txt"
+      when: routing_info.stdout is defined
+
+    - name: Save logging information to file
+      template:
+        src: cisco_log_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_logs_{{ timestamp }}.txt"
+
+    - name: Create summary report
+      template:
+        src: cisco_summary.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_summary_{{ timestamp }}.txt"
+
+    - name: Display collection summary
+      debug:
+        msg: |
+          Mock log collection completed for {{ inventory_hostname }}:
+          - Basic info: {{ basic_info.stdout | length }} commands
+          - Routing info: {{ routing_info.stdout | default([]) | length }} commands  
+          - Logging info: {{ log_info.stdout | length }} commands
+          - Files saved to: {{ log_dir }}/
+
+    - name: List generated files
+      find:
+        paths: "{{ log_dir }}"
+        patterns: "{{ inventory_hostname }}_*_{{ timestamp }}.txt"
+      register: generated_files
+
+    - name: Show generated files
+      debug:
+        msg: "Generated file: {{ item.path }}"
+      loop: "{{ generated_files.files }}"

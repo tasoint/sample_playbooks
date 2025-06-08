@@ -1,0 +1,86 @@
+---
+- hosts: cisco
+  gather_facts: false
+  vars:
+    log_dir: "./logs"
+    timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    
+  tasks:
+    - name: Create log directory
+      file:
+        path: "{{ log_dir }}"
+        state: directory
+      delegate_to: localhost
+      run_once: true
+
+    - name: Collect basic system information
+      cisco.ios.ios_command:
+        commands:
+          - show version
+          - show running-config
+          - show startup-config
+          - show ip interface brief
+          - show interface status
+          - show cdp neighbors detail
+          - show inventory
+          - show processes cpu sorted
+          - show memory summary
+          - show environment all
+      register: basic_info
+
+    - name: Collect routing information
+      cisco.ios.ios_command:
+        commands:
+          - show ip route
+          - show ip arp
+          - show mac address-table
+          - show spanning-tree
+          - show vlan brief
+          - show ip ospf neighbor
+          - show ip bgp summary
+      register: routing_info
+      ignore_errors: true
+
+    - name: Collect logging information
+      cisco.ios.ios_command:
+        commands:
+          - show logging
+          - show logging history
+          - show clock
+          - show users
+          - show sessions
+      register: log_info
+
+    - name: Save basic system information to file
+      template:
+        src: cisco_basic_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_basic_{{ timestamp }}.txt"
+      delegate_to: localhost
+
+    - name: Save routing information to file
+      template:
+        src: cisco_routing_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_routing_{{ timestamp }}.txt"
+      delegate_to: localhost
+      when: routing_info.stdout is defined
+
+    - name: Save logging information to file
+      template:
+        src: cisco_log_info.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_logs_{{ timestamp }}.txt"
+      delegate_to: localhost
+
+    - name: Create summary report
+      template:
+        src: cisco_summary.j2
+        dest: "{{ log_dir }}/{{ inventory_hostname }}_summary_{{ timestamp }}.txt"
+      delegate_to: localhost
+
+    - name: Display collection summary
+      debug:
+        msg: |
+          Log collection completed for {{ inventory_hostname }}:
+          - Basic info: {{ basic_info.stdout | length }} commands
+          - Routing info: {{ routing_info.stdout | default([]) | length }} commands  
+          - Logging info: {{ log_info.stdout | length }} commands
+          - Files saved to: {{ log_dir }}/

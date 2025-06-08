@@ -1,0 +1,47 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    region: ap-northeast-1
+    instance_type: t3.micro
+    ami_id: ami-0d52744d6551d851e  # Amazon Linux 2023
+    key_name: my-key
+    security_group: default
+    subnet_id: ""  # オプション: 特定のサブネットを指定する場合
+
+  tasks:
+    - name: Create EC2 instance
+      amazon.aws.ec2_instance:
+        name: "ansible-ec2-{{ ansible_date_time.epoch }}"
+        image_id: "{{ ami_id }}"
+        instance_type: "{{ instance_type }}"
+        key_name: "{{ key_name }}"
+        security_group: "{{ security_group }}"
+        vpc_subnet_id: "{{ subnet_id if subnet_id else omit }}"
+        region: "{{ region }}"
+        wait: true
+        wait_timeout: 300
+        tags:
+          Environment: development
+          CreatedBy: ansible
+          Project: sample
+        state: present
+      register: ec2_result
+
+    - name: Display EC2 instance information
+      debug:
+        msg: |
+          Instance created successfully:
+          - Instance ID: {{ ec2_result.instances[0].instance_id }}
+          - Public IP: {{ ec2_result.instances[0].public_ip_address | default('N/A') }}
+          - Private IP: {{ ec2_result.instances[0].private_ip_address }}
+          - State: {{ ec2_result.instances[0].state.name }}
+
+    - name: Wait for SSH to be available
+      wait_for:
+        host: "{{ ec2_result.instances[0].public_ip_address }}"
+        port: 22
+        delay: 60
+        timeout: 300
+        state: started
+      when: ec2_result.instances[0].public_ip_address is defined

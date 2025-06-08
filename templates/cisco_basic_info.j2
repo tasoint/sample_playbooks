@@ -1,0 +1,12 @@
+# Cisco Device: {{ inventory_hostname }}
+# Collection Time: {{ ansible_date_time.iso8601 }}
+# Commands: Basic System Information
+
+{% for result in basic_info.stdout %}
+{% set command_name = basic_info.stdout_lines[loop.index0][0].split()[0:3] | join(' ') %}
+================================================================================
+Command: {{ command_name }}
+================================================================================
+{{ result }}
+
+{% endfor %}
